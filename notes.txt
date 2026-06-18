@@ -1,0 +1,62 @@
+paths and routes are the same
+paths is python fastapi term
+routes are in like java or other languages
+
+pydantic used to validate data and types sent in api calls
+
+a python package is just a folder with __init__.py 
+
+example:
+
+from fastapi import FastAPI
+from fastapi.params import Body
+from pydantic import BaseModel
+from typing import Optional
+from random import randrange
+
+
+class PyDanticMediaPost(BaseModel):
+    title: str
+    content: str
+    published: bool = True #setting a default value if post call doesn't have this
+    rating: Optional[int] = None
+
+app = FastAPI()
+
+my_posts = [{"title": "First Post", "content": "This is the content of the first post.", "published": True, "rating": 5, "id": 1},
+            {"title": "Second Post", "content": "This is the content of the second post.", "published": False, "rating": 3, "id": 2},
+            {"title": "Third Post", "content": "This is the content of the third post.", "published": True, "rating": 4, "id": 3}]
+
+
+def find_post(post_id: int):
+    for post in my_posts:
+        if post["id"] == post_id:
+            return post
+    return None
+
+@app.get("/")
+def root():
+    return {"Hello": "World"}
+
+@app.get("/posts")
+def get_posts():
+    print(my_posts)
+    return {"All Posts": my_posts}
+
+@app.get("/posts/{post_id}")
+def get_post(post_id: int):
+    print(type(post_id))
+    post = find_post(post_id)
+    print("ID: ", post_id, "Post: ", post)
+    return {f"Post ID: {post_id}": post}
+
+
+@app.post("/posts")
+def create_posts(payload: PyDanticMediaPost):
+    payload_dict = payload.model_dump()
+    payload_dict["id"] = randrange(1, 100000)
+    print(payload.model_dump())
+    my_posts.append(payload_dict)
+    return {"data": payload.model_dump()}
+
+
