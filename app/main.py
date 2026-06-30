@@ -1,20 +1,25 @@
-from fastapi import FastAPI, Response, status, HTTPException
+from fastapi import FastAPI, Response, status, HTTPException, Depends
 from fastapi.params import Body
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from pydantic import BaseModel
 from typing import Optional
 from random import randrange
+from sqlalchemy.orm import Session
 import time
-
 from requests import post
+from . import models
+from .database import engine, session_local, get_db
 
+
+models.Base.metadata.create_all(bind=engine)
 
 class PyDanticMediaPost(BaseModel):
     title: str
     content: str
     published: bool = True #setting a default value if post call doesn't have this
     rating: Optional[int] = None
+
 
 app = FastAPI()
 while True:
@@ -37,20 +42,30 @@ while True:
 def root():
     return {"Hello": "World"}
 
+@app.get("/sqlalchemy")
+def get_sqlalchemy(db: Session = Depends(get_db)):
+    posts = db.query(models.Post).all()
+    return {"data": posts}
 
 @app.get("/posts")
-def get_posts():
-    cursor.execute("""SELECT * FROM posts""")
-    posts = cursor.fetchall()
-    print(posts)
-    return {"All Posts": posts}
+def get_posts(db: Session = Depends(get_db)):
+    # cursor.execute("""SELECT * FROM posts""")
+    # posts = cursor.fetchall()
+    # print(posts)
+    # return {"All Posts": posts}
+    posts = db.query(models.Post).all()
+    return {"data": posts}
 
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_posts(payload: PyDanticMediaPost):
-    cursor.execute("""INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING *""", (payload.title, payload.content, payload.published))
-    new_post = cursor.fetchone()
-    connection.commit()
+def create_posts(payload: PyDanticMediaPost, db: Session = Depends(get_db)):
+    # cursor.execute("""INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING *""", (payload.title, payload.content, payload.published))
+    # new_post = cursor.fetchone()
+    # connection.commit()
+    new_post = models.Post(title=payload.title, content=payload.content, published=payload.published)
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
     return {"data": new_post}
 
 
