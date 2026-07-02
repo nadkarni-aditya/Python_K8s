@@ -1,9 +1,11 @@
+from urllib import response
+
 from fastapi import FastAPI, Response, status, HTTPException, Depends
 from fastapi.params import Body
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from random import randrange
 from sqlalchemy.orm import Session
 import time
@@ -36,23 +38,19 @@ while True:
 def root():
     return {"Hello": "World"}
 
-@app.get("/sqlalchemy")
-def get_sqlalchemy(db: Session = Depends(get_db)):
-    posts = db.query(models.Post).all()
-    return {"data": posts}
 
-@app.get("/posts")
+@app.get("/posts", response_model=List[schemas.PyDanticResponsePost])
 def get_posts(db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * FROM posts""")
     # posts = cursor.fetchall()
     # print(posts)
     # return {"All Posts": posts}
     posts = db.query(models.Post).all()
-    return {"data": posts}
+    return posts
 
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_posts(payload: schemas.PyDanticMediaPost, db: Session = Depends(get_db)):
+@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.PyDanticResponsePost)
+def create_posts(payload: schemas.PyDanticSendPost, db: Session = Depends(get_db)):
     # cursor.execute("""INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING *""", (payload.title, payload.content, payload.published))
     # new_post = cursor.fetchone()
     # connection.commit()
@@ -60,10 +58,10 @@ def create_posts(payload: schemas.PyDanticMediaPost, db: Session = Depends(get_d
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
-    return {"data": new_post}
+    return new_post
 
 
-@app.get("/posts/{post_id}")
+@app.get("/posts/{post_id}", response_model=schemas.PyDanticResponsePost)
 def get_post(post_id: int, db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * FROM posts WHERE id = %s""", (str(post_id),))
     # post = cursor.fetchone()
@@ -72,7 +70,7 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Post with ID {post_id} not found")
-    return {f"Post ID: {post_id}": post}
+    return  post
 
 
 @app.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT )
@@ -89,8 +87,8 @@ def delete_post(post_id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.put("/posts/{post_id}", status_code=status.HTTP_200_OK)
-def update_post(post_id: int, payload: schemas.PyDanticMediaPost, db: Session = Depends(get_db)):
+@app.put("/posts/{post_id}", status_code=status.HTTP_200_OK,response_model=schemas.PyDanticResponsePost)
+def update_post(post_id: int, payload: schemas.PyDanticUpdatePost, db: Session = Depends(get_db)):
     # cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""", (payload.title, payload.content, payload.published, str(post_id)))
     # updated_post = cursor.fetchone()
     # connection.commit()
@@ -102,6 +100,14 @@ def update_post(post_id: int, payload: schemas.PyDanticMediaPost, db: Session = 
 
     post_query.update(payload.model_dump(), synchronize_session=False)
     db.commit()
-    
-    return {"data": updated_post}
+    return updated_post
+
+
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.PyDanticResponseUser)
+def create_user(payload: schemas.PyDanticCreateUser, db: Session = Depends(get_db)):
+    new_user = models.User(**payload.model_dump())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
 
