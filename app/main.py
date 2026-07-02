@@ -8,17 +8,11 @@ from random import randrange
 from sqlalchemy.orm import Session
 import time
 from requests import post
-from . import models
+from . import models, schemas
 from .database import engine, session_local, get_db
 
 
 models.Base.metadata.create_all(bind=engine)
-
-class PyDanticMediaPost(BaseModel):
-    title: str
-    content: str
-    published: bool = True #setting a default value if post call doesn't have this
-    # rating: Optional[int] = None
 
 
 app = FastAPI()
@@ -58,7 +52,7 @@ def get_posts(db: Session = Depends(get_db)):
 
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_posts(payload: PyDanticMediaPost, db: Session = Depends(get_db)):
+def create_posts(payload: schemas.PyDanticMediaPost, db: Session = Depends(get_db)):
     # cursor.execute("""INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING *""", (payload.title, payload.content, payload.published))
     # new_post = cursor.fetchone()
     # connection.commit()
@@ -96,7 +90,7 @@ def delete_post(post_id: int, db: Session = Depends(get_db)):
 
 
 @app.put("/posts/{post_id}", status_code=status.HTTP_200_OK)
-def update_post(post_id: int, payload: PyDanticMediaPost, db: Session = Depends(get_db)):
+def update_post(post_id: int, payload: schemas.PyDanticMediaPost, db: Session = Depends(get_db)):
     # cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""", (payload.title, payload.content, payload.published, str(post_id)))
     # updated_post = cursor.fetchone()
     # connection.commit()
