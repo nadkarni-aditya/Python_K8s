@@ -21,7 +21,7 @@ class PyDanticResponsePost(PyDanticMediaPost):
     published: bool
 
     class Config:
-        orm_mode = True 
+        from_attributes = True 
 
 class PyDanticCreateUser(BaseModel):
     email: EmailStr  
@@ -30,6 +30,6 @@ class PyDanticCreateUser(BaseModel):
 class PyDanticResponseUser(BaseModel):
     email: EmailStr  
     created_at: datetime
-    
+
     class Config:
-        orm_mode = True 
+        from_attributes = True 
