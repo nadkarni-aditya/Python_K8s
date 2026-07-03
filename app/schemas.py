@@ -29,4 +29,7 @@ class PyDanticCreateUser(BaseModel):
 
 class PyDanticResponseUser(BaseModel):
     email: EmailStr  
-    password: str   
+    created_at: datetime
+    
+    class Config:
+        orm_mode = True 
