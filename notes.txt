@@ -28,35 +28,24 @@ my_posts = [{"title": "First Post", "content": "This is the content of the first
             {"title": "Third Post", "content": "This is the content of the third post.", "published": True, "rating": 4, "id": 3}]
 
 
-def find_post(post_id: int):
-    for post in my_posts:
-        if post["id"] == post_id:
-            return post
-    return None
-
-@app.get("/")
-def root():
-    return {"Hello": "World"}
-
-@app.get("/posts")
-def get_posts():
-    print(my_posts)
-    return {"All Posts": my_posts}
-
-@app.get("/posts/{post_id}")
-def get_post(post_id: int):
-    print(type(post_id))
-    post = find_post(post_id)
-    print("ID: ", post_id, "Post: ", post)
-    return {f"Post ID: {post_id}": post}
+To separate routes, we can create a folder called routers and then put all the different routes in their, then we just add to main.py app.include_router(auth.router)
 
 
-@app.post("/posts")
-def create_posts(payload: PyDanticMediaPost):
-    payload_dict = payload.model_dump()
-    payload_dict["id"] = randrange(1, 100000)
-    print(payload.model_dump())
-    my_posts.append(payload_dict)
-    return {"data": payload.model_dump()}
+Summary of stack so far: -----------------------------------------------------------------
+
+FastAPI - creates the api routes/endpoints, handles requests/responses and turns our python functions into a working web api
+
+psycopg2 - low level driver, lets python talk to postgres, sends raw SQL and gets back raw rows
+
+SQLAlchemy - ORM, lets us use python classes/objects instead of raw SQL, models.py defines tables as classes
+
+pydantic - validates request/response payload data and types, also auto generates api docs from the schemas
+
+passlib CryptContext (bcrypt) - hashes passwords before storing, and verifies plain password against hash on login
+
+python-jose (jose) - creates and decodes JWT access tokens, used in oauth2.py to sign token with secret key + expiry
+-------------------------------------------------------------------------------------------
+
+using builtin FastAPI "OAuth2PasswordRequestForm" we would send username and password through form-data instead of the body
 
 
