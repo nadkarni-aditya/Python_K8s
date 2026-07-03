@@ -12,7 +12,7 @@ import time
 from requests import post
 from . import models, schemas, utils
 from .database import engine, session_local, get_db
-from .routers import mediaposts, user
+from .routers import auth, mediaposts, user
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -33,12 +33,10 @@ while True:
         print(f"Error connecting to PostgreSQL: {e}")
         time.sleep(2)
 
-@app.get("/")
-def root():
-    return {"Hello": "World"}
 
 app.include_router(mediaposts.router)
-app.include_router(user.router) 
+app.include_router(user.router)
+app.include_router(auth.router)
 
 
 

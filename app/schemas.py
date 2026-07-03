@@ -33,3 +33,6 @@ class PyDanticResponseUser(BaseModel):
 
     class Config:
         from_attributes = True 
+
+class userlogin(PyDanticCreateUser):
+    pass

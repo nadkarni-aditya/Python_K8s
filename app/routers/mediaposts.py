@@ -4,9 +4,12 @@ from sqlalchemy.orm import Session
 from ..database import engine, session_local, get_db
 from typing import Optional, List
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/posts",
+    tags=["Posts"]
+)
 
-@router.get("/posts", response_model=List[schemas.PyDanticResponsePost])
+@router.get("/", response_model=List[schemas.PyDanticResponsePost])
 def get_posts(db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * FROM posts""")
     # posts = cursor.fetchall()
@@ -16,7 +19,7 @@ def get_posts(db: Session = Depends(get_db)):
     return posts
 
 
-@router.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.PyDanticResponsePost)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PyDanticResponsePost)
 def create_posts(payload: schemas.PyDanticSendPost, db: Session = Depends(get_db)):
     # cursor.execute("""INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING *""", (payload.title, payload.content, payload.published))
     # new_post = cursor.fetchone()
@@ -28,7 +31,7 @@ def create_posts(payload: schemas.PyDanticSendPost, db: Session = Depends(get_db
     return new_post
 
 
-@router.get("/posts/{post_id}", response_model=schemas.PyDanticResponsePost)
+@router.get("/{post_id}", response_model=schemas.PyDanticResponsePost)
 def get_post(post_id: int, db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * FROM posts WHERE id = %s""", (str(post_id),))
     # post = cursor.fetchone()
@@ -40,7 +43,7 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
     return  post
 
 
-@router.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT )
+@router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT )
 def delete_post(post_id: int, db: Session = Depends(get_db)):
     # cursor.execute("""DELETE FROM posts WHERE id = %s RETURNING *""", (str(post_id),))
     # post = cursor.fetchone()
@@ -54,7 +57,7 @@ def delete_post(post_id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.put("/posts/{post_id}", status_code=status.HTTP_200_OK,response_model=schemas.PyDanticResponsePost)
+@router.put("/{post_id}", status_code=status.HTTP_200_OK,response_model=schemas.PyDanticResponsePost)
 def update_post(post_id: int, payload: schemas.PyDanticUpdatePost, db: Session = Depends(get_db)):
     # cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""", (payload.title, payload.content, payload.published, str(post_id)))
     # updated_post = cursor.fetchone()
