@@ -10,14 +10,14 @@ from random import randrange
 from sqlalchemy.orm import Session
 import time
 from requests import post
-from . import models, schemas
+from . import models, schemas, utils
 from .database import engine, session_local, get_db
-from passlib.context import CryptContext
+
 
 
 models.Base.metadata.create_all(bind=engine)
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 app = FastAPI()
 while True:
@@ -108,8 +108,7 @@ def update_post(post_id: int, payload: schemas.PyDanticUpdatePost, db: Session =
 @app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.PyDanticResponseUser)
 def create_user(CreateUserPayload: schemas.PyDanticCreateUser, db: Session = Depends(get_db)):
 
-    hashed_password = pwd_context.hash(CreateUserPayload.password)
-    CreateUserPayload.password = hashed_password
+    CreateUserPayload.password = utils.hash_password(CreateUserPayload.password)
 
     new_user = models.User(**CreateUserPayload.model_dump())
     db.add(new_user)
