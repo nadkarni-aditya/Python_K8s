@@ -17,10 +17,10 @@ class PyDanticUpdatePost(PyDanticMediaPost):
     pass
 
 class PyDanticResponsePost(PyDanticMediaPost):
-    title: str
-    content: str
-    published: bool
-
+    id: int
+    created_at: datetime
+    owner_id: int
+    
     class Config:
         from_attributes = True 
 

@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=List[schemas.PyDanticResponsePost])
-def get_posts(db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_current_user)):
+def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""SELECT * FROM posts""")
     # posts = cursor.fetchall()
     # print(posts)
@@ -23,12 +23,12 @@ def get_posts(db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_c
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PyDanticResponsePost,)
-def create_posts(payload: schemas.PyDanticSendPost, db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_current_user)):
+def create_posts(payload: schemas.PyDanticSendPost, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING *""", (payload.title, payload.content, payload.published))
     # new_post = cursor.fetchone()
     # connection.commit()
-    print(user_id)
-    new_post = models.Post(**payload.model_dump())
+    print(current_user.email)
+    new_post = models.Post(owner_id=current_user.id, **payload.model_dump())
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
@@ -36,7 +36,7 @@ def create_posts(payload: schemas.PyDanticSendPost, db: Session = Depends(get_db
 
 
 @router.get("/{post_id}", response_model=schemas.PyDanticResponsePost)
-def get_post(post_id: int, db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_current_user)):
+def get_post(post_id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""SELECT * FROM posts WHERE id = %s""", (str(post_id),))
     # post = cursor.fetchone()
     post = db.query(models.Post).filter(models.Post.id == post_id).first()
@@ -48,7 +48,7 @@ def get_post(post_id: int, db: Session = Depends(get_db), user_id: int = Depends
 
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT )
-def delete_post(post_id: int, db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_current_user)):
+def delete_post(post_id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""DELETE FROM posts WHERE id = %s RETURNING *""", (str(post_id),))
     # post = cursor.fetchone()
     # connection.commit()
@@ -62,7 +62,7 @@ def delete_post(post_id: int, db: Session = Depends(get_db), user_id: int = Depe
 
 
 @router.put("/{post_id}", status_code=status.HTTP_200_OK,response_model=schemas.PyDanticResponsePost)
-def update_post(post_id: int, payload: schemas.PyDanticUpdatePost, db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_current_user)):
+def update_post(post_id: int, payload: schemas.PyDanticUpdatePost, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""", (payload.title, payload.content, payload.published, str(post_id)))
     # updated_post = cursor.fetchone()
     # connection.commit()
