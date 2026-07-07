@@ -16,13 +16,6 @@ class PyDanticSendPost(PyDanticMediaPost):
 class PyDanticUpdatePost(PyDanticMediaPost):
     pass
 
-class PyDanticResponsePost(PyDanticMediaPost):
-    id: int
-    created_at: datetime
-    owner_id: int
-    
-    class Config:
-        from_attributes = True 
 
 class PyDanticCreateUser(BaseModel):
     email: EmailStr  
@@ -44,3 +37,12 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id: Optional[str]
+
+class PyDanticResponsePost(PyDanticMediaPost):
+    id: int
+    created_at: datetime
+    owner_id: int
+    owner: PyDanticResponseUser
+    
+    class Config:
+        from_attributes = True 
