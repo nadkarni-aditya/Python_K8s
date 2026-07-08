@@ -19,7 +19,7 @@ def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.
     # print(posts)
     # return {"All Posts": posts}
     posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    # posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
+    # posts = db.query(models.Post).filter(models.Post.owner_id == current_user.user_id).all()
     return posts
 
 
@@ -29,7 +29,7 @@ def create_posts(payload: schemas.PyDanticSendPost, db: Session = Depends(get_db
     # new_post = cursor.fetchone()
     # connection.commit()
     print(current_user.email)
-    new_post = models.Post(owner_id=current_user.id, **payload.model_dump())
+    new_post = models.Post(owner_id=current_user.user_id, **payload.model_dump())
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
@@ -40,12 +40,12 @@ def create_posts(payload: schemas.PyDanticSendPost, db: Session = Depends(get_db
 def get_post(post_id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""SELECT * FROM posts WHERE id = %s""", (str(post_id),))
     # post = cursor.fetchone()
-    post = db.query(models.Post).filter(models.Post.id == post_id, models.Post.owner_id == current_user.id).first()
+    post = db.query(models.Post).filter(models.Post.post_id == post_id, models.Post.owner_id == current_user.user_id).first()
     print(post)
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Post with ID {post_id} not found")
-    if post.owner_id != current_user.id:
+    if post.owner_id != current_user.user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Not authorized to perform requested action")
     return  post
@@ -56,12 +56,12 @@ def delete_post(post_id: int, db: Session = Depends(get_db), current_user: int =
     # cursor.execute("""DELETE FROM posts WHERE id = %s RETURNING *""", (str(post_id),))
     # post = cursor.fetchone()
     # connection.commit()
-    post = db.query(models.Post).filter(models.Post.id == post_id).first()
-   
+    post = db.query(models.Post).filter(models.Post.post_id == post_id).first()
+
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Post with ID {post_id} not found, can't delete")
-    if post.owner_id != current_user.id:
+    if post.owner_id != current_user.user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Not authorized to perform requested action")
     db.delete(post)
@@ -74,12 +74,12 @@ def update_post(post_id: int, payload: schemas.PyDanticUpdatePost, db: Session =
     # cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""", (payload.title, payload.content, payload.published, str(post_id)))
     # updated_post = cursor.fetchone()
     # connection.commit()
-    post_query = db.query(models.Post).filter(models.Post.id == post_id)
+    post_query = db.query(models.Post).filter(models.Post.post_id == post_id)
     updated_post = post_query.first()
     if not updated_post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Post with ID {post_id} not found, can't update")
-    if updated_post.owner_id != current_user.id:
+    if updated_post.owner_id != current_user.user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail=f"Not authorized to perform requested action")
 

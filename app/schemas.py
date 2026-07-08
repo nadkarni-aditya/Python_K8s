@@ -40,7 +40,7 @@ class TokenData(BaseModel):
     id: Optional[str]
 
 class PyDanticResponsePost(PyDanticMediaPost):
-    id: int
+    post_id: int
     created_at: datetime
     owner_id: int
     owner: PyDanticResponseUser
