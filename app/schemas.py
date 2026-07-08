@@ -51,3 +51,10 @@ class PyDanticResponsePost(PyDanticMediaPost):
 class PyDanticVote(BaseModel):
     post_id: int
     dir: conint(le=1)
+
+class PostVote(BaseModel):
+    Post: PyDanticResponsePost
+    votes: int
+
+    class Config:
+        from_attributes = True

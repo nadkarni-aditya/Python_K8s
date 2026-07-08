@@ -3,6 +3,7 @@ from app import oauth2
 from .. import models, schemas
 from fastapi import FastAPI, Response, status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from ..database import engine, session_local, get_db
 from typing import Optional, List
 # from .. import get_current_user
@@ -12,15 +13,18 @@ router = APIRouter(
     tags=["Posts"]
 )
 
-@router.get("/", response_model=List[schemas.PyDanticResponsePost])
+@router.get("/", response_model=List[schemas.PostVote])
 def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # cursor.execute("""SELECT * FROM posts""")
     # posts = cursor.fetchall()
     # print(posts)
     # return {"All Posts": posts}
     posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
+        models.Vote, models.Vote.post_id == models.Post.post_id, isouter=True).group_by(models.Post.post_id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    print(results)
     # posts = db.query(models.Post).filter(models.Post.owner_id == current_user.user_id).all()
-    return posts
+    return results
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PyDanticResponsePost,)
@@ -36,19 +40,20 @@ def create_posts(payload: schemas.PyDanticSendPost, db: Session = Depends(get_db
     return new_post
 
 
-@router.get("/{post_id}", response_model=schemas.PyDanticResponsePost)
+@router.get("/{post_id}", response_model=schemas.PostVote)
 def get_post(post_id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""SELECT * FROM posts WHERE id = %s""", (str(post_id),))
     # post = cursor.fetchone()
-    post = db.query(models.Post).filter(models.Post.post_id == post_id, models.Post.owner_id == current_user.user_id).first()
+
+    post = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
+        models.Vote, models.Vote.post_id == models.Post.post_id, isouter=True).group_by(models.Post.post_id).filter(models.Post.post_id == post_id).first()
+    
+
     print(post)
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Post with ID {post_id} not found")
-    if post.owner_id != current_user.user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail=f"Not authorized to perform requested action")
-    return  post
+    return post
 
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT )
