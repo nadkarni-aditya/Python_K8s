@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from . import models
 from .database import engine
 from .routers import auth, mediaposts, user
+from .config import settings
+
 
 models.Base.metadata.create_all(bind=engine)
 

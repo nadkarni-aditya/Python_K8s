@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from typing import Optional
 from random import randrange
 
+Example starter code and Pydantic data validation schema:
 
 class PyDanticMediaPost(BaseModel):
     title: str
@@ -23,9 +24,6 @@ class PyDanticMediaPost(BaseModel):
 
 app = FastAPI()
 
-my_posts = [{"title": "First Post", "content": "This is the content of the first post.", "published": True, "rating": 5, "id": 1},
-            {"title": "Second Post", "content": "This is the content of the second post.", "published": False, "rating": 3, "id": 2},
-            {"title": "Third Post", "content": "This is the content of the third post.", "published": True, "rating": 4, "id": 3}]
 
 
 To separate routes, we can create a folder called routers and then put all the different routes in their, then we just add to main.py app.include_router(auth.router)
@@ -46,6 +44,8 @@ passlib CryptContext (bcrypt) - hashes passwords before storing, and verifies pl
 python-jose (jose) - creates and decodes JWT access tokens, used in oauth2.py to sign token with secret key + expiry
 -------------------------------------------------------------------------------------------
 
-using builtin FastAPI "OAuth2PasswordRequestForm" we would send username and password through form-data instead of the body
+using builtin FastAPI "OAuth2PasswordRequestForm" we would send username and password through form-data instead of the body'
+
+Switch hardcoded values to environment variables for safety
 
 
