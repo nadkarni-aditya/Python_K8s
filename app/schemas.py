@@ -3,6 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
+from pydantic.types import conint
 
 class PyDanticMediaPost(BaseModel):
     title: str
@@ -46,3 +47,7 @@ class PyDanticResponsePost(PyDanticMediaPost):
     
     class Config:
         from_attributes = True 
+
+class PyDanticVote(BaseModel):
+    post_id: int
+    dir: conint(le=1)
