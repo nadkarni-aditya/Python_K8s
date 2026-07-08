@@ -48,4 +48,6 @@ using builtin FastAPI "OAuth2PasswordRequestForm" we would send username and pas
 
 Switch hardcoded values to environment variables for safety
 
+created .env file with sensitive information and added it to .gitignore so its not pushed publically.
+
 
