@@ -42,6 +42,9 @@ pydantic - validates request/response payload data and types, also auto generate
 passlib CryptContext (bcrypt) - hashes passwords before storing, and verifies plain password against hash on login
 
 python-jose (jose) - creates and decodes JWT access tokens, used in oauth2.py to sign token with secret key + expiry
+
+alembic - manages database migrations for SQLAlchemy models, keeps schema changes versioned instead of using create_all in code. use alembic revision --autogenerate and alembic upgrade head
+
 -------------------------------------------------------------------------------------------
 
 using builtin FastAPI "OAuth2PasswordRequestForm" we would send username and password through form-data instead of the body'

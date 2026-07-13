@@ -5,7 +5,7 @@ from .routers import auth, mediaposts, user, vote
 from .config import settings
 
 
-models.Base.metadata.create_all(bind=engine)
+# models.Base.metadata.create_all(bind=engine) don't need to be called here because we are using Alembic for migrations
 
 app = FastAPI()
 
