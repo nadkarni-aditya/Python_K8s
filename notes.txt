@@ -1,6 +1,4 @@
-paths and routes are the same
-paths is python fastapi term
-routes are in like java or other languages
+## APP
 
 pydantic used to validate data and types sent in api calls
 
@@ -53,4 +51,4 @@ Switch hardcoded values to environment variables for safety
 
 created .env file with sensitive information and added it to .gitignore so its not pushed publically.
 
-
+## INFRA
