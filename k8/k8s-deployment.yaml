@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: fastapi-app
+  name: fastapi-app
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastapi-app
+  template:
+    metadata:
+      labels:
+        app: fastapi-app
+    spec:
+      containers:
+      - image: fastapi-app:latest
+        imagePullPolicy: Never
+        name: fastapi-app
+        ports:
+        - containerPort: 8000
+        # envFrom pulls EVERY key from the ConfigMap and Secret in as env vars.
+        # These env vars OVERRIDE the stale baked-in .env inside the image
+        # (pydantic-settings reads env vars before the .env file), which is what
+        # kills the localhost ghost.
+        envFrom:
+        - configMapRef:
+            name: fastapi-config
+        - secretRef:
+            name: fastapi-secret

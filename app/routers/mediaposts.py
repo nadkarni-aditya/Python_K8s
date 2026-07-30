@@ -22,7 +22,7 @@ def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.
     posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
     results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
         models.Vote, models.Vote.post_id == models.Post.post_id, isouter=True).group_by(models.Post.post_id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    print(results)
+    # print(results)
     # posts = db.query(models.Post).filter(models.Post.owner_id == current_user.user_id).all()
     return results
 
@@ -32,7 +32,7 @@ def create_posts(payload: schemas.PyDanticSendPost, db: Session = Depends(get_db
     # cursor.execute("""INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING *""", (payload.title, payload.content, payload.published))
     # new_post = cursor.fetchone()
     # connection.commit()
-    print(current_user.email)
+    # print(current_user.email)
     new_post = models.Post(owner_id=current_user.user_id, **payload.model_dump())
     db.add(new_post)
     db.commit()
@@ -49,7 +49,7 @@ def get_post(post_id: int, db: Session = Depends(get_db), current_user: int = De
         models.Vote, models.Vote.post_id == models.Post.post_id, isouter=True).group_by(models.Post.post_id).filter(models.Post.post_id == post_id).first()
     
 
-    print(post)
+    # print(post)
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Post with ID {post_id} not found")

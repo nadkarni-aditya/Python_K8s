@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: fastapi-app
+  name: fastapi-app
+spec:
+  ports:
+  - port: 5000
+    protocol: TCP
+    targetPort: 8000
+  selector:
+    app: fastapi-app
+status:
+  loadBalancer: {}

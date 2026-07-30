@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fastapi-config
+  namespace: default
+data:
+  # Non-secret config. DATABASE_HOSTNAME is the postgres SERVICE name — this is
+  # the fix for the localhost connection-refused error. Values here must match
+  # how the postgres pod was created (POSTGRES_DB=fastapi, POSTGRES_USER=postgres).
+  DATABASE_HOSTNAME: "postgres"
+  DATABASE_PORT: "5432"
+  DATABASE_USERNAME: "postgres"
+  DATABASE_NAME: "fastapi"
+  ALGORITHM: "HS256"
+  ACCESS_TOKEN_EXPIRE_MINUTES: "30"
