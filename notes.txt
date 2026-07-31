@@ -52,3 +52,72 @@ Switch hardcoded values to environment variables for safety
 created .env file with sensitive information and added it to .gitignore so its not pushed publically.
 
 ## INFRA
+
+##O11Y
+1. App exposes metrics. Add to main.py:
+
+python
+from prometheus_fastapi_instrumentator import Instrumentator
+Instrumentator().instrument(app).expose(app, endpoint="/metrics")
+
+Add prometheus-fastapi-instrumentator==8.1.0 to requirements.txt. Then rebuild loop (build → kind load → rollout restart). This gives you /metrics.
+
+2. Install the monitoring stack via Helm (one bundle = Prometheus + Grafana + wiring):
+
+bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace
+
+3. Name your Service's port (ServiceMonitor references ports by name) — add to service.yaml:
+
+yaml
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000
+
+kubectl apply -f service.yaml
+
+4. Tell Prometheus to scrape your app — a ServiceMonitor:
+
+yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: fastapi-app
+  namespace: monitoring
+  labels:
+    release: monitoring        # REQUIRED — this stack's Prometheus only adopts monitors with this label
+spec:
+  selector:
+    matchLabels:
+      app: fastapi-app
+  namespaceSelector:
+    matchNames: [default]
+  endpoints:
+  - port: http                 # matches the NAMED service port
+    path: /metrics
+    interval: 5s
+
+kubectl apply -f servicemonitor.yaml
+
+5. Verify the scrape (before touching Grafana):
+
+bash
+kubectl -n monitoring port-forward svc/monitoring-kube-prometheus-prometheus 9090:9090
+# open localhost:9090/targets → look for fastapi-app = UP
+
+6. Open Grafana:
+
+bash
+kubectl -n monitoring port-forward svc/monitoring-grafana 3000:80
+# password:
+kubectl -n monitoring get secret monitoring-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
+# localhost:3000, admin / <password>
+
+7. Build 3 panels (New dashboard → Add visualization → Prometheus datasource → Code mode):
+
+RPS: sum(rate(http_requests_total{handler!="/metrics"}[1m])) by (handler)
+p95: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{handler!="/metrics",handler!="/login"}[5m])) by (le, handler))
+Errors: sum(rate(http_requests_total{status=~"5.."}[1m])) by (handler)
