@@ -51,9 +51,58 @@ Switch hardcoded values to environment variables for safety
 
 created .env file with sensitive information and added it to .gitignore so its not pushed publically.
 
+
+
 ## INFRA
 
-##O11Y
+# DEV LOOP (order matters)
+1. docker build -t fastapi-app:latest .
+2. kind load docker-image fastapi-app:latest --name practicelab
+3. kubectl apply -f <manifest>.yaml
+4. kubectl rollout restart deployment fastapi-app
+5. kubectl port-forward svc/fastapi-app 5000:8000   (dev-only doorway in)
+
+# #1 FORK — what did I change?
+- CODE (main.py/requirements) → full rebuild loop (build → kind load → rollout)
+- CONFIG (any .yaml) → just kubectl apply -f
+- SCHEMA (new migration) → kubectl exec deploy/fastapi-app -- alembic upgrade head
+
+# OBJECTS (all share: apiVersion/kind/metadata/spec)
+- Deployment = keep N pods of an image alive (self-healing). Owns replicas, image, probes, envFrom.
+- Service = stable address in front of pods; finds them by LABEL not IP. Owns selector, port, targetPort.
+- ConfigMap/Secret = config injected via envFrom; OVERRIDES any baked-in .env.
+
+# PORTS
+containerPort/app = 8000. Service port=8000, targetPort=8000.
+port-forward LEFT=any free Mac port, RIGHT=Service's real port (8000).
+
+# RULES LEARNED THE HARD WAY
+- ONE object = ONE file. apply reconciles to the WHOLE file — omitting envFrom DELETES it (localhost error returns).
+- replicas: 1 = kill pod = total outage. replicas: 2 = seamless self-heal. Zero-downtime needs replicas>=2 + readiness probe.
+- port-forward is bound to ONE pod; rollout/chaos kills it. Restart it, or: while true; do kubectl port-forward svc/fastapi-app 5000:8000; sleep 1; done
+
+# COMMON ISSUES → FIX
+- 500 "localhost:5432 refused" → DATABASE_HOSTNAME must = postgres (service name), via envFrom.
+- 500 'relation "users" does not exist' → kubectl exec -it deploy/fastapi-app -- alembic upgrade head
+- 404 on endpoint → route not in running image (edited but never rebuilt). 404 = app layer.
+- ImagePullBackOff/ErrImageNeverPull → image not loaded in kind, or tag mismatch. Rebuild + kind load exact tag.
+- Every request 500 after new library → version incompat (instrumentator 7.0.0 vs new FastAPI). Traceback path names the culprit.
+
+# DEBUG
+kubectl get pods -l app=fastapi-app          # STATUS/READY
+kubectl logs -l app=fastapi-app --tail=30    # traceback at bottom
+kubectl exec deploy/fastapi-app -- printenv  # what env the app ACTUALLY has
+kubectl get endpoints fastapi-app            # pod IPs (empty = selector mismatch)
+
+# DIAGNOSIS FORK — which layer?
+curl works, client fails → client/Locust. curl fails → app or tunnel.
+4xx/5xx from app → app layer. connection refused/hang → network/tunnel.
+client logs errors but server logs 0 → failure BETWEEN them (port-forward), not the app. Server logs = ground truth. 
+
+
+
+## O11Y
+
 1. App exposes metrics. Add to main.py:
 
 python
