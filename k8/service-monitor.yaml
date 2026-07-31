@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: fastapi-app
+  namespace: monitoring
+  labels:
+    release: monitoring          # this stack's Prometheus only picks up ServiceMonitors with this label
+spec:
+  selector:
+    matchLabels:
+      app: fastapi-app           # find the Service labeled app=fastapi-app
+  namespaceSelector:
+    matchNames:
+    - default                    # ...in the default namespace (where your app is)
+  endpoints:
+  - port: http                   # matches the Service's NAMED port (added above)
+    path: /metrics
+    interval: 5s                 # scrape every 5 seconds

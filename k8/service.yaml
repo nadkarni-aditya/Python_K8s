@@ -3,13 +3,13 @@ kind: Service
 metadata:
   labels:
     app: fastapi-app
+    namespace: default
   name: fastapi-app
 spec:
+  type: ClusterIP
   ports:
-  - port: 5000
+  - port: 8000
     protocol: TCP
     targetPort: 8000
   selector:
     app: fastapi-app
-status:
-  loadBalancer: {}
