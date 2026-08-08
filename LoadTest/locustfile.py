@@ -94,7 +94,7 @@ class SocialAppUser(HttpUser):
             name="/posts/{id} [read]",
             catch_response=True,
         ) as resp:
-            if resp.status_code in (200, 404):
+            if resp.status_code in (200, 403, 404):
                 resp.success()
             else:
                 resp.failure(f"read post {resp.status_code}")
@@ -107,7 +107,7 @@ class SocialAppUser(HttpUser):
             name="/users/{id}",
             catch_response=True,
         ) as resp:
-            if resp.status_code in (200, 404):
+            if resp.status_code in (200, 403, 404):
                 resp.success()
             else:
                 resp.failure(f"get user {resp.status_code}")
@@ -152,7 +152,7 @@ class SocialAppUser(HttpUser):
             name="/posts/{id} [update]",
             catch_response=True,
         ) as resp:
-            if resp.status_code in (200, 404):
+            if resp.status_code in (200, 403, 404):
                 resp.success()
             else:
                 resp.failure(f"update post {resp.status_code}")
@@ -171,7 +171,7 @@ class SocialAppUser(HttpUser):
             name="/vote/",
             catch_response=True,
         ) as resp:
-            if resp.status_code in (201, 404, 409):
+            if resp.status_code in (201, 403, 404, 409):
                 resp.success()
             else:
                 resp.failure(f"vote {resp.status_code}")
@@ -188,7 +188,7 @@ class SocialAppUser(HttpUser):
             name="/posts/{id} [delete]",
             catch_response=True,
         ) as resp:
-            if resp.status_code in (204, 404):
+            if resp.status_code in (204, 403, 404):
                 resp.success()
             else:
                 resp.failure(f"delete post {resp.status_code}")

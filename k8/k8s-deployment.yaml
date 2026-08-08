@@ -30,3 +30,22 @@ spec:
             name: fastapi-config
         - secretRef:
             name: fastapi-secret
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
