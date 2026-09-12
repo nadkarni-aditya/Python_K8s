@@ -6,9 +6,9 @@ jobs:
   job1:
     runs-on: ubuntu-latest
     steps:
-      - name:
+      - name: Checkout repository
         uses: actions/checkout@v4
-      - name: install python v3.9
+      - name: install python v3.13
         uses: actions/setup-python@v5
         with: 
           python-version: '3.13'
